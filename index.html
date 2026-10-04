@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15122B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Таҳлил">
+<title>График Таҳлил</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15122B;
+    --bg-2:#1C1838;
+    --card:#221D44;
+    --card-2:#2A2452;
+    --line:#352E63;
+    --text:#F2EFFF;
+    --muted:#A6A0CC;
+    --dim:#7D77A6;
+    --amber:#FFB547;
+    --amber-ink:#2A1A00;
+    --bull:#3DD68C;
+    --bear:#FF6B81;
+    --violet:#9B8CFF;
+    --r-lg:24px;
+    --r-md:16px;
+    --r-sm:12px;
+    --safe-b:env(safe-area-inset-bottom,0px);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    color-scheme:dark;
+  }
+  *,*::before,*::after{box-sizing:inherit}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+  body{
+    margin:0;min-height:100vh;background:var(--bg);color:var(--text);
+    font-family:'Manrope','Segoe UI',Roboto,system-ui,sans-serif;
+    font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+    -webkit-tap-highlight-color:transparent;
+  }
+  img{max-width:100%;display:block}
+  button,input,textarea{font:inherit;color:inherit}
+  button{cursor:pointer}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+  .hidden{display:none !important}
+
+  /* ——— каркас ——— */
+  .app{max-width:560px;margin:0 auto;padding:0 18px calc(120px + var(--safe-b))}
+  .topbar{
+    position:sticky;top:env(safe-area-inset-top,0px);z-index:20;
+    display:flex;align-items:center;gap:10px;
+    padding:14px 0 12px;background:var(--bg);
+  }
+  .brand{font-family:'Unbounded','Manrope',sans-serif;font-weight:600;font-size:19px;letter-spacing:-.01em;margin:0;flex:1}
+  .iconbtn{
+    width:42px;height:42px;border-radius:14px;border:1px solid var(--line);
+    background:var(--bg-2);display:grid;place-items:center;color:var(--muted);
+  }
+  .iconbtn:active{transform:scale(.96)}
+  .iconbtn svg{width:20px;height:20px}
+  .backbtn{display:none}
+  body[data-view="setup"] .backbtn,
+  body[data-view="result"] .backbtn,
+  body[data-view="history"] .backbtn{display:grid}
+
+  /* ——— бош экран ——— */
+  .hero{
+    position:relative;overflow:hidden;
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:22px 20px 20px;margin-top:6px;
+  }
+  .hero-chart{display:block;width:100%;height:132px;margin:-4px 0 16px}
+  .hero-chart .c{transform-origin:center bottom;transform-box:fill-box;animation:grow .55s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes grow{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
+  @media (prefers-reduced-motion:reduce){.hero-chart .c{animation:none}}
+  .hero h2{
+    font-family:'Unbounded','Manrope',sans-serif;font-weight:600;
+    font-size:24px;line-height:1.2;letter-spacing:-.015em;margin:0 0 8px;
+  }
+  .hero p{margin:0 0 20px;color:var(--muted);font-size:15px;max-width:36ch}
+  .hero.over{border-color:var(--amber)}
+
+  .row{display:flex;gap:10px}
+  .row > *{flex:1}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    min-height:54px;padding:0 18px;border-radius:var(--r-md);border:1px solid transparent;
+    font-weight:700;font-size:16px;width:100%;
+    transition:transform .12s ease,background .15s ease;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn svg{width:20px;height:20px;flex:none}
+  .btn-primary{background:var(--amber);color:var(--amber-ink)}
+  .btn-soft{background:var(--card-2);color:var(--text);border-color:var(--line)}
+  .btn-ghost{background:transparent;color:var(--muted);border-color:var(--line)}
+
+  .section-h{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin:28px 2px 12px;
+  }
+  .section-h h3{font-size:17px;font-weight:700;margin:0}
+  .linkbtn{background:none;border:0;color:var(--violet);font-weight:600;font-size:14px;padding:4px}
+
+  .hist{display:flex;flex-direction:column;gap:10px}
+  .hitem{
+    display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+    background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r-md);padding:10px;
+  }
+  .hitem:active{transform:scale(.99)}
+  .hthumb{width:58px;height:46px;border-radius:10px;object-fit:cover;background:var(--card);flex:none}
+  .hmeta{flex:1;min-width:0}
+  .hpair{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hsub{font-size:13px;color:var(--dim)}
+  .tag{
+    font-size:12.5px;font-weight:700;padding:5px 10px;border-radius:999px;white-space:nowrap;
+  }
+  .tag.up{background:rgba(61,214,140,.14);color:var(--bull)}
+  .tag.down{background:rgba(255,107,129,.14);color:var(--bear)}
+  .tag.flat{background:rgba(166,160,204,.14);color:var(--muted)}
+  .empty{color:var(--dim);font-size:14px;padding:14px 4px}
+
+  /* ——— созлаш экрани ——— */
+  .shot{
+    position:relative;border-radius:var(--r-lg);overflow:hidden;
+    border:1px solid var(--line);background:#0E0C1E;
+  }
+  .shot img{width:100%;max-height:52vh;object-fit:contain}
+  .scan{
+    position:absolute;left:0;right:0;height:72px;top:-72px;pointer-events:none;
+    background:linear-gradient(180deg,rgba(255,181,71,0) 0%,rgba(255,181,71,.18) 80%,rgba(255,181,71,.9) 100%);
+    border-bottom:2px solid var(--amber);
+    animation:scan 2.2s cubic-bezier(.45,.05,.55,.95) infinite;
+  }
+  @keyframes scan{0%{top:-72px}100%{top:100%}}
+  @media (prefers-reduced-motion:reduce){.scan{animation:none;top:auto;bottom:0;height:3px;background:var(--amber)}}
+  .shot-dim::after{content:"";position:absolute;inset:0;background:rgba(21,18,43,.35)}
+
+  .label{display:block;font-size:14px;font-weight:600;color:var(--muted);margin:22px 2px 10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    padding:10px 15px;border-radius:999px;border:1px solid var(--line);
+    background:var(--bg-2);color:var(--muted);font-size:14.5px;font-weight:600;
+  }
+  .chip[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:var(--amber-ink)}
+
+  details.more{margin-top:18px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--bg-2)}
+  details.more summary{
+    list-style:none;padding:15px 16px;font-weight:600;font-size:15px;color:var(--muted);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  details.more summary::-webkit-details-marker{display:none}
+  details.more summary svg{width:18px;height:18px;transition:transform .2s ease}
+  details.more[open] summary svg{transform:rotate(180deg)}
+  .more-body{padding:0 16px 16px}
+  .field{margin-top:12px}
+  .field label{display:block;font-size:13px;color:var(--dim);margin-bottom:6px}
+  .inp{
+    width:100%;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);
+    padding:13px 14px;font-size:16px;
+  }
+  .inp::placeholder{color:#6E689A}
+  .inp:focus{outline:none;border-color:var(--amber)}
+  textarea.inp{resize:vertical;min-height:70px}
+
+  .err{
+    margin-top:16px;padding:13px 15px;border-radius:var(--r-sm);
+    background:rgba(255,107,129,.1);border:1px solid rgba(255,107,129,.35);
+    color:#FFB3BE;font-size:14.5px;
+  }
+
+  /* ——— скан ҳолати ——— */
+  .phase{text-align:center;margin-top:22px}
+  .phase b{display:block;font-size:17px;margin-bottom:4px}
+  .phase span{color:var(--muted);font-size:14.5px}
+  .dots{display:flex;justify-content:center;gap:6px;margin-top:16px}
+  .dots i{width:8px;height:8px;border-radius:50%;background:var(--line);transition:background .3s ease,width .3s ease}
+  .dots i.on{background:var(--amber);width:22px;border-radius:4px}
+
+  /* ——— натижа ——— */
+  .res-hero{border-radius:var(--r-lg);padding:20px;border:1px solid var(--line);background:var(--card)}
+  .res-hero.up{background:linear-gradient(160deg,rgba(61,214,140,.18),var(--card) 60%);border-color:rgba(61,214,140,.35)}
+  .res-hero.down{background:linear-gradient(160deg,rgba(255,107,129,.18),var(--card) 60%);border-color:rgba(255,107,129,.35)}
+  .res-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .res-pair{font-family:'Unbounded','Manrope',sans-serif;font-weight:600;font-size:22px;margin:0;line-height:1.2}
+  .res-tf{color:var(--muted);font-size:14px;margin-top:4px}
+  .res-bias{font-size:14px;font-weight:800;padding:8px 14px;border-radius:999px;white-space:nowrap}
+  .res-bias.up{background:var(--bull);color:#05301B}
+  .res-bias.down{background:var(--bear);color:#3D0812}
+  .res-bias.flat{background:var(--card-2);color:var(--muted);border:1px solid var(--line)}
+  .res-price{margin-top:16px;display:flex;align-items:baseline;gap:8px}
+  .res-price strong{font-size:28px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .res-price span{color:var(--dim);font-size:13px}
+  .res-sum{margin:14px 0 0;font-size:15.5px}
+
+  .block{margin-top:14px;background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px}
+  .block h4{margin:0 0 14px;font-size:16px;font-weight:700}
+
+  .crt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .crt div{
+    border-radius:var(--r-sm);padding:12px 8px;text-align:center;
+    background:var(--card);border:1px solid var(--line);color:var(--dim);font-size:13px;font-weight:600;
+  }
+  .crt div b{display:block;font-size:12px;color:var(--dim);font-weight:700;margin-bottom:2px}
+  .crt div.on{background:rgba(255,181,71,.14);border-color:var(--amber);color:var(--amber)}
+  .crt div.on b{color:var(--amber)}
+  .crt-note{margin:12px 0 0;color:var(--muted);font-size:14.5px}
+
+  .ladder{position:relative;padding-left:18px}
+  .ladder::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--line);border-radius:2px}
+  .rung{position:relative;padding:9px 0}
+  .rung::before{
+    content:"";position:absolute;left:-17px;top:16px;width:10px;height:10px;border-radius:50%;
+    background:var(--bg-2);border:2px solid var(--dim);
+  }
+  .rung.res::before{border-color:var(--bear)}
+  .rung.sup::before{border-color:var(--bull)}
+  .rung.now::before{background:var(--amber);border-color:var(--amber);box-shadow:0 0 0 4px rgba(255,181,71,.2)}
+  .rung-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .rung-px{font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
+  .rung-kind{font-size:12.5px;font-weight:700}
+  .rung.res .rung-kind{color:var(--bear)}
+  .rung.sup .rung-kind{color:var(--bull)}
+  .rung.now .rung-kind{color:var(--amber)}
+  .rung-note{color:var(--muted);font-size:13.5px;margin-top:2px}
+
+  .scn{border-radius:var(--r-md);padding:15px;background:var(--card);border:1px solid var(--line)}
+  .scn + .scn{margin-top:10px}
+  .scn-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+  .scn-title{font-weight:700;font-size:15.5px}
+  .act{font-size:12.5px;font-weight:800;padding:5px 10px;border-radius:999px;white-space:nowrap}
+  .act.buy{background:rgba(61,214,140,.16);color:var(--bull)}
+  .act.sell{background:rgba(255,107,129,.16);color:var(--bear)}
+  .act.wait{background:rgba(255,181,71,.16);color:var(--amber)}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14.5px;margin:0}
+  .kv dt{color:var(--dim)}
+  .kv dd{margin:0}
+  .targets{display:flex;flex-wrap:wrap;gap:6px}
+  .targets span{background:var(--card-2);border:1px solid var(--line);border-radius:8px;padding:2px 8px;font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums}
+  .prob{margin-top:10px;font-size:13px;color:var(--dim)}
+
+  .check{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;font-size:14.5px}
+  .check:first-of-type{border-top:0;padding-top:0}
+  .box{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;margin-top:1px}
+  .box svg{width:14px;height:14px;opacity:0}
+  .check[aria-pressed="true"] .box{background:var(--bull);border-color:var(--bull);color:#05301B}
+  .check[aria-pressed="true"] .box svg{opacity:1}
+  .check[aria-pressed="true"] span{color:var(--dim);text-decoration:line-through}
+
+  .warn{background:rgba(255,107,129,.07);border-color:rgba(255,107,129,.3)}
+  .warn h4{color:var(--bear)}
+  .warn ul{margin:0;padding-left:18px}
+  .warn li{font-size:14.5px;margin-bottom:6px}
+  .warn li:last-child{margin-bottom:0}
+
+  .meter{display:flex;align-items:center;gap:12px}
+  .meter-bar{flex:1;height:8px;border-radius:4px;background:var(--card);overflow:hidden}
+  .meter-bar i{display:block;height:100%;background:var(--amber);border-radius:4px}
+  .meter b{font-variant-numeric:tabular-nums}
+  .meter-cap{color:var(--muted);font-size:13.5px;margin-top:8px}
+
+  .disclaimer{color:var(--dim);font-size:12.5px;text-align:center;margin:26px 8px 0;line-height:1.6}
+
+  /* ——— пастки панел ——— */
+  .dock{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;
+    padding:12px 18px calc(12px + var(--safe-b));
+    background:rgba(21,18,43,.92);
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);
+  }
+  .dock-in{max-width:560px;margin:0 auto;display:flex;gap:10px}
+  .dock-in .btn{flex:1}
+  .dock-in .btn-soft{flex:0 0 auto;width:auto;padding:0 16px}
+
+  /* ——— созламалар ойнаси ——— */
+  .sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(8,6,20,.6)}
+  .sheet{
+    position:fixed;left:0;right:0;bottom:0;z-index:41;
+    max-height:92vh;overflow:auto;
+    background:var(--bg-2);border-top:1px solid var(--line);
+    border-radius:26px 26px 0 0;
+    padding:10px 20px calc(22px + var(--safe-b));
+    animation:up .28s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+  @media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+  .sheet-in{max-width:560px;margin:0 auto}
+  .grip{width:42px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 16px}
+  .sheet h3{font-family:'Unbounded','Manrope',sans-serif;font-weight:600;font-size:19px;margin:0 0 6px}
+  .sheet p.sub{color:var(--muted);font-size:14px;margin:0 0 6px}
+  .hint{color:var(--dim);font-size:12.5px;margin:7px 2px 0;line-height:1.5}
+  .keyrow{position:relative}
+  .keyrow .inp{padding-right:54px}
+  .eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:42px;height:38px;border:0;background:none;color:var(--dim);display:grid;place-items:center}
+  .eye svg{width:20px;height:20px}
+  .ok{margin-top:12px;color:var(--bull);font-size:14px;font-weight:600}
+  .models{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+
+  .toast{
+    position:fixed;left:50%;bottom:calc(96px + var(--safe-b));transform:translateX(-50%);z-index:50;
+    background:var(--text);color:var(--bg);font-weight:700;font-size:14px;
+    padding:10px 16px;border-radius:999px;
+  }
+</style>
+</head>
+<body data-view="home">
+
+<div class="app">
+  <div class="topbar">
+    <button class="iconbtn backbtn" id="btnBack" aria-label="Орқага">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h1 class="brand">График таҳлил</h1>
+    <button class="iconbtn" id="btnHistory" aria-label="Тарих">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+    </button>
+    <button class="iconbtn" id="btnSettings" aria-label="Созламалар">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </div>
+
+  <!-- БОШ ЭКРАН -->
+  <main id="vHome">
+    <section class="hero" id="drop">
+      <svg class="hero-chart" viewBox="0 0 320 132" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Шамчалар">
+        <rect x="70" y="26" width="104" height="74" rx="6" fill="rgba(255,181,71,.08)" stroke="rgba(255,181,71,.5)" stroke-dasharray="4 4"/>
+        <line x1="0" y1="26" x2="320" y2="26" stroke="rgba(255,181,71,.35)" stroke-dasharray="3 6"/>
+        <line x1="0" y1="118" x2="320" y2="118" stroke="rgba(255,107,129,.4)" stroke-dasharray="3 6"/>
+        <g stroke-linecap="round" stroke-width="2">
+          <g class="c" style="animation-delay:.00s"><line x1="22" y1="66" x2="22" y2="102" stroke="#3DD68C"/><rect x="15" y="74" width="14" height="22" rx="3" fill="#3DD68C"/></g>
+          <g class="c" style="animation-delay:.06s"><line x1="50" y1="54" x2="50" y2="92" stroke="#3DD68C"/><rect x="43" y="60" width="14" height="26" rx="3" fill="#3DD68C"/></g>
+          <g class="c" style="animation-delay:.12s"><line x1="86" y1="26" x2="86" y2="100" stroke="#A6A0CC"/><rect x="79" y="36" width="14" height="52" rx="3" fill="#352E63" stroke="#A6A0CC" stroke-width="1.5"/></g>
+          <g class="c" style="animation-delay:.18s"><line x1="114" y1="40" x2="114" y2="90" stroke="#3DD68C"/><rect x="107" y="50" width="14" height="30" rx="3" fill="#3DD68C"/></g>
+          <g class="c" style="animation-delay:.24s"><line x1="142" y1="44" x2="142" y2="122" stroke="#FF6B81"/><rect x="135" y="56" width="14" height="34" rx="3" fill="#FF6B81"/></g>
+          <g class="c" style="animation-delay:.30s"><line x1="178" y1="50" x2="178" y2="112" stroke="#3DD68C"/><rect x="171" y="60" width="14" height="40" rx="3" fill="#3DD68C"/></g>
+          <g class="c" style="animation-delay:.36s"><line x1="210" y1="28" x2="210" y2="76" stroke="#3DD68C"/><rect x="203" y="34" width="14" height="36" rx="3" fill="#3DD68C"/></g>
+          <g class="c" style="animation-delay:.42s"><line x1="242" y1="12" x2="242" y2="56" stroke="#3DD68C"/><rect x="235" y="18" width="14" height="30" rx="3" fill="#3DD68C"/></g>
+          <g class="c" style="animation-delay:.48s"><line x1="274" y1="6" x2="274" y2="44" stroke="#FFB547"/><rect x="267" y="12" width="14" height="22" rx="3" fill="#FFB547"/></g>
+        </g>
+      </svg>
+      <h2>Графикни юборинг, даражаларни кўрсатаман</h2>
+      <p>MEXC ёки TradingView'дан скриншот олинг. CRT босқичи, муҳим нархлар ва кириш сценарийлари чиқади.</p>
+      <div class="row">
+        <button class="btn btn-primary" id="btnGallery">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+          Галерея
+        </button>
+        <button class="btn btn-soft" id="btnCamera">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Камера
+        </button>
+      </div>
+      <div class="err hidden" id="pickErr"></div>
+    </section>
+
+    <div class="section-h">
+      <h3>Охирги таҳлиллар</h3>
+      <button class="linkbtn hidden" id="btnAllHist">Ҳаммаси</button>
+    </div>
+    <div class="hist" id="recent"></div>
+
+    <p class="disclaimer">Таҳлил фақат юборилган расмга асосланади ва молиявий маслаҳат эмас.</p>
+  </main>
+
+  <!-- СОЗЛАШ -->
+  <main id="vSetup" class="hidden">
+    <div class="shot" id="shot">
+      <img id="preview" alt="Танланган график">
+      <div class="scan hidden" id="scan"></div>
+    </div>
+
+    <div id="setupForm">
+      <span class="label">Таҳлил услуби</span>
+      <div class="chips" id="methods" role="group" aria-label="Таҳлил услуби">
+        <button type="button" class="chip" data-m="CRT (Candle Range Theory)" aria-pressed="true">CRT</button>
+        <button type="button" class="chip" data-m="Қўллаб-қувватлаш ва қаршилик (Support/Resistance)" aria-pressed="false">Даражалар</button>
+        <button type="button" class="chip" data-m="Талаб ва таклиф зоналари (Supply/Demand)" aria-pressed="false">Талаб / Таклиф</button>
+        <button type="button" class="chip" data-m="Тренд, формация ва ҳажм бўйича умумий таҳлил" aria-pressed="false">Умумий</button>
+      </div>
+
+      <details class="more">
+        <summary>
+          Қўшимча маълумот
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="more-body">
+          <div class="field">
+            <label for="pair">Жуфтлик</label>
+            <input class="inp" id="pair" placeholder="BTC/USDT" autocomplete="off" autocapitalize="characters">
+          </div>
+          <div class="field">
+            <label for="tf">Таймфрейм</label>
+            <input class="inp" id="tf" placeholder="4H" autocomplete="off" autocapitalize="characters">
+          </div>
+          <div class="field">
+            <label for="q">Саволингиз</label>
+            <textarea class="inp" id="q" placeholder="Шу ердан кирса бўладими?"></textarea>
+          </div>
+        </div>
+      </details>
+
+      <div class="err hidden" id="runErr"></div>
+    </div>
+
+    <div id="scanInfo" class="hidden">
+      <div class="phase">
+        <b id="phaseBig">Графикни ўқияпман</b>
+        <span id="phaseSmall">Шамчалар ва нарх шкаласи</span>
+      </div>
+      <div class="dots"><i class="on"></i><i></i><i></i></div>
+    </div>
+  </main>
+
+  <!-- НАТИЖА -->
+  <main id="vResult" class="hidden"></main>
+
+  <!-- ТАРИХ -->
+  <main id="vHistory" class="hidden">
+    <div class="section-h" style="margin-top:6px">
+      <h3>Барча таҳлиллар</h3>
+      <button class="linkbtn" id="btnClearHist">Тозалаш</button>
+    </div>
+    <div class="hist" id="allHist"></div>
+  </main>
+</div>
+
+<!-- ПАСТКИ ПАНЕЛ -->
+<div class="dock hidden" id="dock">
+  <div class="dock-in" id="dockIn"></div>
+</div>
+
+<!-- СОЗЛАМАЛАР -->
+<div class="sheet-bg hidden" id="sheetBg"></div>
+<div class="sheet hidden" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-in">
+    <div class="grip"></div>
+    <h3 id="sheetTitle">Созламалар</h3>
+    <p class="sub">Таҳлил сизнинг Anthropic API калитингиз орқали ишлайди.</p>
+
+    <div class="field">
+      <label for="key">API калит</label>
+      <div class="keyrow">
+        <input class="inp" id="key" type="password" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false" autocapitalize="off">
+        <button class="eye" id="btnEye" type="button" aria-label="Калитни кўрсатиш">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <p class="hint">Калит фақат шу телефоннинг браузерида сақланади ва тўғридан-тўғри api.anthropic.com га юборилади. Уни ҳеч кимга берманг ва GitHub'га ёзманг.</p>
+    </div>
+
+    <div class="field">
+      <label>Модель</label>
+      <div class="models" id="models">
+        <button type="button" class="chip" data-model="claude-haiku-4-5-20251001">Тез</button>
+        <button type="button" class="chip" data-model="claude-sonnet-5-5">Мувозанат</button>
+        <button type="button" class="chip" data-model="claude-opus-5">Энг кучли</button>
+      </div>
+      <p class="hint" id="modelHint"></p>
+    </div>
+
+    <div style="margin-top:20px">
+      <button class="btn btn-primary" id="btnSaveKey">Сақлаш</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn btn-ghost" id="btnClearKey">Калитни ўчириш</button>
+      <button class="btn btn-ghost" id="btnCloseSheet">Ёпиш</button>
+    </div>
+    <div class="ok hidden" id="keyMsg"></div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
+<input type="file" id="fileGal" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+
+<script>
+(function(){
+  "use strict";
+
+  var API_URL = "https://api.anthropic.com/v1/messages";
+  var DEFAULT_MODEL = "claude-sonnet-5-5";
+  var LS_KEY = "chart_tahlil_key";
+  var LS_MODEL = "chart_tahlil_model";
+  var LS_HIST = "chart_tahlil_history";
+  var HIST_MAX = 20;
+
+  var MODEL_HINTS = {
+    "claude-haiku-4-5-20251001": "Энг арзон ва тез. Оддий графиклар учун етарли.",
+    "claude-sonnet-5-5": "Тавсия этилади: аниқлик ва нарх ўртасидаги мувозанат.",
+    "claude-opus-5": "Энг чуқур таҳлил, лекин қимматроқ ва секинроқ."
+  };
+
+  var $ = function(id){ return document.getElementById(id); };
+  var img = null;          // {b64, type, thumb}
+  var ctl = null, phaseTimer = null, currentView = "home";
+
+  /* ================= сақлаш ================= */
+  function lsGet(k){ try{ return localStorage.getItem(k) || ""; }catch(e){ return ""; } }
+  function lsSet(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
+  function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+  function getKey(){ return lsGet(LS_KEY).trim(); }
+  function getModel(){ return (lsGet(LS_MODEL) || DEFAULT_MODEL).trim(); }
+
+  function getHist(){
+    try{ var a = JSON.parse(lsGet(LS_HIST) || "[]"); return Array.isArray(a) ? a : []; }
+    catch(e){ return []; }
+  }
+  function saveHist(list){
+    while (list.length){
+      if (lsSet(LS_HIST, JSON.stringify(list))) return;
+      list.pop();
+    }
+    lsDel(LS_HIST);
+  }
+  function addHist(entry){
+    var list = getHist();
+    list.unshift(entry);
+    if (list.length > HIST_MAX) list.length = HIST_MAX;
+    saveHist(list);
+  }
+
+  /* ================= навигация ================= */
+  var views = { home:$("vHome"), setup:$("vSetup"), result:$("vResult"), history:$("vHistory") };
+
+  function show(name){
+    currentView = name;
+    document.body.setAttribute("data-view", name);
+    Object.keys(views).forEach(function(k){ views[k].classList.toggle("hidden", k !== name); });
+    if (name === "home") renderRecent();
+    if (name === "history") renderAllHist();
+    window.scrollTo(0,0);
+  }
+
+  $("btnBack").addEventListener("click", function(){
+    if (ctl){ ctl.abort(); return; }
+    show("home"); setDock(null);
+  });
+  $("btnHistory").addEventListener("click", function(){ show("history"); setDock(null); });
+  $("btnAllHist").addEventListener("click", function(){ show("history"); setDock(null); });
+
+  function setDock(buttons){
+    var dock = $("dock"), inn = $("dockIn");
+    inn.innerHTML = "";
+    if (!buttons || !buttons.length){ dock.classList.add("hidden"); return; }
+    buttons.forEach(function(b){ inn.appendChild(b); });
+    dock.classList.remove("hidden");
+  }
+  function mkBtn(text, cls, fn, icon){
+    var b = document.createElement("button");
+    b.className = "btn " + cls;
+    if (icon) b.innerHTML = icon;
+    b.appendChild(document.createTextNode(text));
+    b.addEventListener("click", fn);
+    return b;
+  }
+
+  var ICON_SPARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>';
+  var ICON_SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>';
+  var ICON_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>';
+
+  function toast(t){
+    var el = $("toast");
+    el.textContent = t; el.classList.remove("hidden");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ el.classList.add("hidden"); }, 1800);
+  }
+
+  /* ================= созламалар ================= */
+  var selModel = getModel();
+
+  function openSheet(msg){
+    $("key").value = getKey();
+    $("key").type = "password";
+    selModel = getModel();
+    paintModels();
+    var km = $("keyMsg");
+    if (msg){ km.textContent = msg; km.className = "ok"; km.style.color = "var(--amber)"; }
+    else km.classList.add("hidden");
+    $("sheetBg").classList.remove("hidden");
+    $("sheet").classList.remove("hidden");
+  }
+  function closeSheet(){
+    $("sheetBg").classList.add("hidden");
+    $("sheet").classList.add("hidden");
+  }
+  function paintModels(){
+    var known = false;
+    Array.prototype.forEach.call($("models").querySelectorAll(".chip"), function(c){
+      var on = c.dataset.model === selModel;
+      if (on) known = true;
+      c.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    $("modelHint").textContent = known ? MODEL_HINTS[selModel] : ("Ҳозирги модель: " + selModel);
+  }
+  Array.prototype.forEach.call($("models").querySelectorAll(".chip"), function(c){
+    c.addEventListener("click", function(){ selModel = c.dataset.model; paintModels(); });
+  });
+
+  $("btnSettings").addEventListener("click", function(){ openSheet(); });
+  $("sheetBg").addEventListener("click", closeSheet);
+  $("btnCloseSheet").addEventListener("click", closeSheet);
+  $("btnEye").addEventListener("click", function(){
+    var k = $("key"); k.type = k.type === "password" ? "text" : "password";
+  });
+  $("btnSaveKey").addEventListener("click", function(){
+    var k = $("key").value.trim();
+    var km = $("keyMsg");
+    if (!k){ km.textContent = "Калит киритилмади."; km.className = "ok"; km.style.color = "var(--bear)"; return; }
+    if (k.indexOf("sk-ant-") !== 0){
+      km.textContent = "Бу Anthropic калитига ўхшамаяпти — у sk-ant- билан бошланиши керак.";
+      km.className = "ok"; km.style.color = "var(--bear)"; return;
+    }
+    lsSet(LS_KEY, k); lsSet(LS_MODEL, selModel);
+    closeSheet();
+    toast("Сақланди");
+  });
+  $("btnClearKey").addEventListener("click", function(){
+    lsDel(LS_KEY); $("key").value = "";
+    var km = $("keyMsg"); km.textContent = "Калит ўчирилди."; km.className = "ok"; km.style.color = "var(--muted)";
+  });
+
+  /* ================= расм танлаш ================= */
+  $("btnGallery").addEventListener("click", function(){ $("fileGal").click(); });
+  $("btnCamera").addEventListener("click", function(){ $("fileCam").click(); });
+  $("fileGal").addEventListener("change", function(e){ take(e.target.files && e.target.files[0]); e.target.value = ""; });
+  $("fileCam").addEventListener("change", function(e){ take(e.target.files && e.target.files[0]); e.target.value = ""; });
+
+  var dz = $("drop");
+  ["dragenter","dragover"].forEach(function(t){ dz.addEventListener(t, function(e){ e.preventDefault(); dz.classList.add("over"); }); });
+  ["dragleave","drop"].forEach(function(t){ dz.addEventListener(t, function(e){ e.preventDefault(); dz.classList.remove("over"); }); });
+  dz.addEventListener("drop", function(e){
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) take(e.dataTransfer.files[0]);
+  });
+  document.addEventListener("paste", function(e){
+    var items = (e.clipboardData && e.clipboardData.items) || [];
+    for (var i=0;i<items.length;i++){
+      if (items[i].type && items[i].type.indexOf("image/") === 0){ take(items[i].getAsFile()); return; }
+    }
+  });
+
+  function pickErr(msg){ var el = $("pickErr"); el.textContent = msg || ""; el.classList.toggle("hidden", !msg); }
+
+  var OK_TYPES = ["image/png","image/jpeg","image/webp","image/gif"];
+
+  function take(file){
+    if (!file) return;
+    if (file.type && file.type.indexOf("image/") !== 0){ pickErr("Бу расм эмас. PNG, JPG ёки WebP танланг."); return; }
+    pickErr("");
+    prepare(file).then(function(res){
+      if (!res){ pickErr("Расмни ўқий олмадим. Бошқа скриншот танланг."); return; }
+      img = res;
+      $("preview").src = "data:" + res.type + ";base64," + res.b64;
+      $("runErr").classList.add("hidden");
+      openSetup();
+    });
+  }
+
+  function loadImage(file){
+    return new Promise(function(resolve){
+      var url = URL.createObjectURL(file), im = new Image();
+      im.onload = function(){ resolve({im:im, url:url}); };
+      im.onerror = function(){ URL.revokeObjectURL(url); resolve(null); };
+      im.src = url;
+    });
+  }
+  function draw(im, max, quality){
+    var s = Math.min(1, max / Math.max(im.width, im.height));
+    var c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(im.width * s));
+    c.height = Math.max(1, Math.round(im.height * s));
+    var g = c.getContext("2d");
+    g.fillStyle = "#ffffff"; g.fillRect(0,0,c.width,c.height);
+    g.drawImage(im, 0, 0, c.width, c.height);
+    return c.toDataURL("image/jpeg", quality).split(",")[1];
+  }
+  function prepare(file){
+    return loadImage(file).then(function(r){
+      if (!r){
+        if (OK_TYPES.indexOf(file.type) === -1) return null;
+        return toB64(file).then(function(b){ return b ? { b64:b, type:file.type, thumb:null } : null; });
+      }
+      try{
+        var keep = OK_TYPES.indexOf(file.type) !== -1 && file.size < 2.5*1024*1024 &&
+                   Math.max(r.im.width, r.im.height) <= 2000;
+        var thumb = draw(r.im, 220, 0.7);
+        if (keep){
+          return toB64(file).then(function(b){
+            URL.revokeObjectURL(r.url);
+            return b ? { b64:b, type:file.type, thumb:thumb } : null;
+          });
+        }
+        var big = draw(r.im, 1600, 0.9);
+        URL.revokeObjectURL(r.url);
+        return { b64:big, type:"image/jpeg", thumb:thumb };
+      } catch(e){ URL.revokeObjectURL(r.url); return null; }
+    });
+  }
+  function toB64(blob){
+    return new Promise(function(resolve){
+      var fr = new FileReader();
+      fr.onload = function(){ var s = String(fr.result), i = s.indexOf(","); resolve(i === -1 ? null : s.slice(i+1)); };
+      fr.onerror = function(){ resolve(null); };
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  /* ================= созлаш экрани ================= */
+  Array.prototype.forEach.call($("methods").querySelectorAll(".chip"), function(c){
+    c.addEventListener("click", function(){
+      c.setAttribute("aria-pressed", c.getAttribute("aria-pressed") === "true" ? "false" : "true");
+    });
+  });
+  function chosen(){
+    var out = [];
+    Array.prototype.forEach.call($("methods").querySelectorAll('.chip[aria-pressed="true"]'), function(c){ out.push(c.dataset.m); });
+    return out.length ? out : ["Тренд, формация ва ҳажм бўйича умумий таҳлил"];
+  }
+
+  function openSetup(){
+    $("setupForm").classList.remove("hidden");
+    $("scanInfo").classList.add("hidden");
+    $("scan").classList.add("hidden");
+    $("shot").classList.remove("shot-dim");
+    show("setup");
+    setDock([
+      mkBtn("Бошқа", "btn-soft", function(){ $("fileGal").click(); }),
+      mkBtn("Таҳлил қил", "btn-primary", run, ICON_SPARK)
+    ]);
+  }
+
+  /* ================= скан ҳолати ================= */
+  var PHASES = [
+    ["Графикни ўқияпман", "Шамчалар ва нарх шкаласи"],
+    ["Даражаларни белгилаяпман", "Қўллаб-қувватлаш ва қаршилик"],
+    ["Сценарийларни тузяпман", "Кириш, тўхташ ва мақсад нуқталари"]
+  ];
+  function startScan(){
+    $("setupForm").classList.add("hidden");
+    $("scanInfo").classList.remove("hidden");
+    $("scan").classList.remove("hidden");
+    $("shot").classList.add("shot-dim");
+    var i = 0, dots = $("scanInfo").querySelectorAll(".dots i");
+    function paint(){
+      $("phaseBig").textContent = PHASES[i][0];
+      $("phaseSmall").textContent = PHASES[i][1];
+      Array.prototype.forEach.call(dots, function(d, j){ d.classList.toggle("on", j === i); });
+    }
+    paint();
+    phaseTimer = setInterval(function(){ i = Math.min(i+1, PHASES.length-1); paint(); }, 8000);
+    setDock([ mkBtn("Тўхтатиш", "btn-soft", function(){ if (ctl) ctl.abort(); }) ]);
+    $("shot").scrollIntoView({block:"start"});
+  }
+  function stopScan(){
+    if (phaseTimer){ clearInterval(phaseTimer); phaseTimer = null; }
+    $("scan").classList.add("hidden");
+    $("shot").classList.remove("shot-dim");
+  }
+
+  /* ================= API ================= */
+  async function run(){
+    var key = getKey();
+    if (!key){ openSheet("Аввал API калитни киритинг."); return; }
+    if (!img) return;
+
+    $("runErr").classList.add("hidden");
+    startScan();
+    ctl = new AbortController();
+
+    var meta = { pair: $("pair").value.trim(), tf: $("tf").value.trim() };
+    var body = {
+      model: getModel(),
+      max_tokens: 2000,
+      messages: [{
+        role: "user",
+        content: [
+          { type:"image", source:{ type:"base64", media_type:img.type, data:img.b64 } },
+          { type:"text", text: buildPrompt() }
+        ]
+      }]
+    };
+
+    try{
+      var res = await fetch(API_URL, {
+        method:"POST", signal: ctl.signal,
+        headers:{
+          "content-type":"application/json",
+          "x-api-key": key,
+          "anthropic-version":"2023-06-01",
+          "anthropic-dangerous-direct-browser-access":"true"
+        },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok){
+        var detail = "";
+        try{ var ej = await res.json(); detail = (ej && ej.error && ej.error.message) || ""; }catch(e){}
+        throw { http: res.status, detail: detail };
+      }
+      var data = await res.json();
+      var text = (data.content || []).map(function(b){ return b && b.type === "text" ? b.text : ""; }).join("\n").trim();
+      var parsed = parseJSON(text);
+      if (!parsed) throw { http:0, detail:"json" };
+
+      ctl = null; stopScan();
+      var entry = { id: Date.now(), at: Date.now(), thumb: img.thumb, data: parsed, meta: meta };
+      if (parsed.chart_detected !== false) addHist(entry);
+      renderResult(entry);
+    } catch(e){
+      ctl = null; stopScan();
+      $("setupForm").classList.remove("hidden");
+      $("scanInfo").classList.add("hidden");
+      setDock([
+        mkBtn("Бошқа", "btn-soft", function(){ $("fileGal").click(); }),
+        mkBtn("Қайта уриниш", "btn-primary", run, ICON_SPARK)
+      ]);
+      if (e && e.name === "AbortError"){
+        setDock([
+          mkBtn("Бошқа", "btn-soft", function(){ $("fileGal").click(); }),
+          mkBtn("Таҳлил қил", "btn-primary", run, ICON_SPARK)
+        ]);
+        return;
+      }
+      var el = $("runErr");
+      el.textContent = errText(e);
+      el.classList.remove("hidden");
+      if (e && (e.http === 401 || e.http === 403 || e.http === 404)){
+        setTimeout(function(){ openSheet(errText(e)); }, 400);
+      }
+    }
+  }
+
+  function parseJSON(t){
+    if (!t) return null;
+    try{ return JSON.parse(t); }catch(e){}
+    var f = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (f){ try{ return JSON.parse(f[1]); }catch(e){} }
+    var a = t.indexOf("{"), b = t.lastIndexOf("}");
+    if (a !== -1 && b > a){ try{ return JSON.parse(t.slice(a, b+1)); }catch(e){} }
+    return null;
+  }
+
+  function errText(e){
+    if (!e) return "Номаълум хатолик. Қайта уриниб кўринг.";
+    if (e.detail === "json") return "Жавоб тўлиқ чиқмади. Қайта уриниб кўринг.";
+    var d = (e.detail || "").toLowerCase();
+    if (d.indexOf("credit") !== -1 || d.indexOf("balance") !== -1)
+      return "API ҳисобида маблағ тугаган. Console → Billing бўлимидан тўлдиринг.";
+    switch(e.http){
+      case 401: return "API калит нотўғри ёки ўчирилган. Созламалардан қайта киритинг.";
+      case 403: return "Бу калитда рухсат йўқ. Бошқа калит киритинг.";
+      case 404: return "Модель топилмади. Созламалардан бошқа моделни танланг.";
+      case 400: return "Сўров қабул қилинмади" + (e.detail ? ": " + e.detail : ".");
+      case 413: return "Расм жуда катта. Кичикроқ скриншот юборинг.";
+      case 429: return "Сўровлар жуда кўп. Бир дақиқадан сўнг уриниб кўринг.";
+      case 500: case 503: case 529: return "Хизмат вақтинча банд. Бироздан сўнг қайта уриниб кўринг.";
+      default:
+        if (e.http) return "Хатолик (" + e.http + ")" + (e.detail ? ": " + e.detail : "");
+        return "Интернетга уланиб бўлмади. Уланишни текширинг ва иловани Safari'да очганингизга ишонч ҳосил қилинг.";
+    }
+  }
+
+  function buildPrompt(){
+    var ms = chosen();
+    var pair = $("pair").value.trim(), tf = $("tf").value.trim(), q = $("q").value.trim();
+    var crt = ms.some(function(m){ return m.indexOf("CRT") === 0; })
+      ? "\nCRT (Candle Range Theory) эслатма: 1) Range — катта шамча ўз диапазонини тузади; " +
+        "2) Manipulation — кейинги шамча range юқориси ёки пастини ёлғон тешиб (sweep) қайтади; " +
+        "3) Distribution — нарх қарама-қарши томонга кучли ҳаракат қилади. " +
+        "Расмда қайси босқич кўриняпти — crt.phase га айнан \"Range\", \"Manipulation\", \"Distribution\" ёки \"аниқ эмас\" деб ёз.\n"
+      : "";
+    return [
+      "Сен тажрибали крипто бозор техник таҳлилчисисан. Фойдаланувчи крипто нарх графигининг суратини юборди.",
+      "Расмни диққат билан ўрган ва техник таҳлил қил.",
+      "",
+      "ТАҲЛИЛ УСЛУБИ: " + ms.join("; "),
+      crt,
+      "ФОЙДАЛАНУВЧИ ҲАҚИДА:",
+      "- Фақат СПОТ савдо қилади, шорт очмайди. Ҳаракат варианти фақат: \"сотиб олиш\", \"кутиш\" ёки \"сотиш\".",
+      "",
+      "ҚЎШИМЧА МАЪЛУМОТ:",
+      "- Жуфтлик: " + (pair || "кўрсатилмаган — расмдан ўқи"),
+      "- Таймфрейм: " + (tf || "кўрсатилмаган — расмдан ўқи"),
+      "- Фойдаланувчи саволи: " + (q || "йўқ"),
+      "",
+      "ҚОИДАЛАР:",
+      "1. Фақат расмда КЎРИНАЁТГАН нарсага таян. Нархларни графикнинг ўнг шкаласидан ўқи. Ўқий олмасанг \"номаълум\" деб ёз, тўқима.",
+      "2. Расм крипто/молиявий график бўлмаса — chart_detected=false қил ва note да нима кўринаётганини ёз.",
+      "3. Барча матн ЎЗБЕК ТИЛИДА, КИРИЛЛ ёзувида.",
+      "4. Қисқа ёз: ҳар бир матн майдони 2 жумладан ошмасин.",
+      "5. Нарх майдонларига фақат рақам ёз (масалан \"64250\" ёки \"0.4512\"), бирлик ва изоҳ қўшма.",
+      "6. Аниқ эмас жойларни warnings да айт. Кафолат берма.",
+      "",
+      "Жавобни ФАҚАТ JSON қилиб қайтар, бошқа ҳеч қандай матн ёзма. Шакли:",
+      "{",
+      '  "chart_detected": true,',
+      '  "note": "",',
+      '  "pair": "BTC/USDT",',
+      '  "timeframe": "4H",',
+      '  "price_now": "64250",',
+      '  "bias": "ўсиш" | "тушиш" | "ноаниқ",',
+      '  "summary": "умумий ҳолат, 2-3 жумла",',
+      '  "levels": [{"kind":"қаршилик" | "қўллаб-қувватлаш","price":"65800","note":"..."}],',
+      '  "crt": {"phase":"Range" | "Manipulation" | "Distribution" | "аниқ эмас","detail":"..."} ёки null,',
+      '  "scenarios": [{"title":"...","action":"сотиб олиш" | "кутиш" | "сотиш","trigger":"...","invalidation":"...","targets":["66500"],"probability":"юқори" | "ўрта" | "паст"}],',
+      '  "checklist": ["кирмасдан олдин текшириладиган нарсалар"],',
+      '  "warnings": ["эҳтиёт бўлиш керак бўлган жойлар"],',
+      '  "confidence": 3',
+      "}",
+      "confidence — 1 дан 5 гача бутун сон: расм қанчалик аниқ ўқилганига қараб."
+    ].join("\n");
+  }
+
+  /* ================= натижа ================= */
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function has(v){ return v != null && String(v).trim() !== ""; }
+  function arr(v){ return Array.isArray(v) ? v.filter(function(x){ return x != null && String(x).trim() !== ""; }) : []; }
+  function biasCls(b){
+    b = String(b || "").toLowerCase();
+    return b.indexOf("ўс") === 0 ? "up" : (b.indexOf("туш") === 0 ? "down" : "flat");
+  }
+  function num(s){
+    if (s == null) return NaN;
+    var t = String(s).replace(/\s/g,"").replace(/,(?=\d{3}\b)/g,"").replace(",",".");
+    var m = t.match(/-?\d+(\.\d+)?/);
+    return m ? parseFloat(m[0]) : NaN;
+  }
+  function fmtTime(ts){
+    var d = new Date(ts), now = new Date();
+    var hh = String(d.getHours()).padStart(2,"0"), mm = String(d.getMinutes()).padStart(2,"0");
+    if (d.toDateString() === now.toDateString()) return "Бугун, " + hh + ":" + mm;
+    return String(d.getDate()).padStart(2,"0") + "." + String(d.getMonth()+1).padStart(2,"0") + ", " + hh + ":" + mm;
+  }
+
+  function renderResult(entry){
+    var d = entry.data || {}, m = entry.meta || {};
+    var root = views.result;
+    root.innerHTML = "";
+
+    if (d.chart_detected === false){
+      var b0 = el("div","block");
+      b0.appendChild(el("h4",null,"График топилмади"));
+      b0.appendChild(el("p",null, has(d.note) ? d.note : "Расмда нарх графиги кўринмади. Чарт скриншотини юборинг."));
+      b0.lastChild.style.margin = "0";
+      root.appendChild(b0);
+      show("result");
+      setDock([ mkBtn("Бошқа расм", "btn-primary", function(){ $("fileGal").click(); }, ICON_PLUS) ]);
+      return;
+    }
+
+    var bc = biasCls(d.bias);
+
+    /* асосий карта */
+    var hero = el("section","res-hero " + bc);
+    var top = el("div","res-top");
+    var left = el("div");
+    left.appendChild(el("h2","res-pair", has(d.pair) ? d.pair : (m.pair || "Жуфтлик номаълум")));
+    var tfLine = [has(d.timeframe) ? d.timeframe : (m.tf || ""), fmtTime(entry.at)].filter(Boolean).join(", ");
+    left.appendChild(el("div","res-tf", tfLine));
+    top.appendChild(left);
+    top.appendChild(el("span","res-bias " + bc, has(d.bias) ? d.bias : "ноаниқ"));
+    hero.appendChild(top);
+    if (has(d.price_now) && !isNaN(num(d.price_now))){
+      var pr = el("div","res-price");
+      pr.appendChild(el("strong",null,String(d.price_now)));
+      pr.appendChild(el("span",null,"жорий нарх"));
+      hero.appendChild(pr);
+    }
+    if (has(d.summary)) hero.appendChild(el("p","res-sum", d.summary));
+    root.appendChild(hero);
+
+    /* CRT */
+    if (d.crt && (has(d.crt.phase) || has(d.crt.detail))){
+      var bc2 = el("section","block");
+      bc2.appendChild(el("h4",null,"CRT босқичи"));
+      var ph = String(d.crt.phase || "").toLowerCase();
+      var steps = [["1","Range","range"],["2","Manipulation","manip"],["3","Distribution","distr"]];
+      var row = el("div","crt");
+      steps.forEach(function(s){
+        var c = el("div", ph.indexOf(s[2]) !== -1 ? "on" : null);
+        c.appendChild(el("b",null,s[0]));
+        c.appendChild(document.createTextNode(s[1]));
+        row.appendChild(c);
+      });
+      bc2.appendChild(row);
+      if (has(d.crt.detail)) bc2.appendChild(el("p","crt-note", d.crt.detail));
+      root.appendChild(bc2);
+    }
+
+    /* даражалар шкаласи */
+    var lv = Array.isArray(d.levels) ? d.levels.filter(function(x){ return x && has(x.price); }) : [];
+    if (lv.length){
+      var bl = el("section","block");
+      bl.appendChild(el("h4",null,"Муҳим даражалар"));
+      var rungs = lv.map(function(L){
+        var sup = String(L.kind||"").indexOf("қўлл") === 0;
+        return { p:num(L.price), price:String(L.price), kind: sup ? "Қўллаб-қувватлаш" : "Қаршилик", cls: sup ? "sup" : "res", note: L.note };
+      });
+      var nowP = num(d.price_now);
+      if (!isNaN(nowP)) rungs.push({ p:nowP, price:String(d.price_now), kind:"Жорий нарх", cls:"now", note:"" });
+      var allNum = rungs.every(function(r){ return !isNaN(r.p); });
+      if (allNum) rungs.sort(function(a,b){ return b.p - a.p; });
+      var lad = el("div","ladder");
+      rungs.forEach(function(r){
+        var rr = el("div","rung " + r.cls);
+        var t = el("div","rung-top");
+        t.appendChild(el("span","rung-px", r.price));
+        t.appendChild(el("span","rung-kind", r.kind));
+        rr.appendChild(t);
+        if (has(r.note)) rr.appendChild(el("div","rung-note", r.note));
+        lad.appendChild(rr);
+      });
+      bl.appendChild(lad);
+      root.appendChild(bl);
+    }
+
+    /* сценарийлар */
+    var sc = Array.isArray(d.scenarios) ? d.scenarios.filter(Boolean) : [];
+    if (sc.length){
+      var bs = el("section","block");
+      bs.appendChild(el("h4",null,"Сценарийлар"));
+      sc.forEach(function(S){
+        var a = String(S.action||"").toLowerCase();
+        var k = a.indexOf("сотиб") === 0 ? "buy" : (a.indexOf("сот") === 0 ? "sell" : "wait");
+        var card = el("div","scn");
+        var st = el("div","scn-top");
+        st.appendChild(el("span","scn-title", has(S.title) ? S.title : "Сценарий"));
+        st.appendChild(el("span","act " + k, has(S.action) ? S.action : "кутиш"));
+        card.appendChild(st);
+        var dl = el("dl","kv");
+        if (has(S.trigger)){ dl.appendChild(el("dt",null,"Шарт")); dl.appendChild(el("dd",null,S.trigger)); }
+        if (has(S.invalidation)){ dl.appendChild(el("dt",null,"Бекор")); dl.appendChild(el("dd",null,S.invalidation)); }
+        var tg = arr(S.targets);
+        if (tg.length){
+          dl.appendChild(el("dt",null,"Мақсад"));
+          var dd = el("dd"), wrap = el("div","targets");
+          tg.forEach(function(x){ wrap.appendChild(el("span",null,String(x))); });
+          dd.appendChild(wrap); dl.appendChild(dd);
+        }
+        if (dl.childNodes.length) card.appendChild(dl);
+        if (has(S.probability)) card.appendChild(el("div","prob","Эҳтимол: " + S.probability));
+        bs.appendChild(card);
+      });
+      root.appendChild(bs);
+    }
+
+    /* текширув рўйхати */
+    var ch = arr(d.checklist);
+    if (ch.length){
+      var bk = el("section","block");
+      bk.appendChild(el("h4",null,"Кирмасдан олдин"));
+      ch.forEach(function(x){
+        var b = el("button","check"); b.type = "button"; b.setAttribute("aria-pressed","false");
+        var box = el("span","box");
+        box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>';
+        b.appendChild(box);
+        b.appendChild(el("span",null,String(x)));
+        b.addEventListener("click", function(){
+          b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true");
+        });
+        bk.appendChild(b);
+      });
+      root.appendChild(bk);
+    }
+
+    /* огоҳлантириш */
+    var wr = arr(d.warnings);
+    if (wr.length){
+      var bw = el("section","block warn");
+      bw.appendChild(el("h4",null,"Эҳтиёт бўлинг"));
+      var ul = el("ul");
+      wr.forEach(function(x){ ul.appendChild(el("li",null,String(x))); });
+      bw.appendChild(ul);
+      root.appendChild(bw);
+    }
+
+    /* аниқлик */
+    var n = parseInt(d.confidence, 10);
+    if (n >= 1 && n <= 5){
+      var bm = el("section","block");
+      var mt = el("div","meter");
+      var bar = el("div","meter-bar"), fill = el("i");
+      fill.style.width = (n * 20) + "%";
+      bar.appendChild(fill);
+      mt.appendChild(el("span",null,"Аниқлик"));
+      mt.appendChild(bar);
+      mt.appendChild(el("b",null, n + "/5"));
+      bm.appendChild(mt);
+      bm.appendChild(el("div","meter-cap", n <= 2 ? "Расм яхши ўқилмади — нарх шкаласи аниқроқ кўринган скриншот юборинг." : "Расмдаги нархлар ишончли ўқилди."));
+      root.appendChild(bm);
+    }
+
+    root.appendChild(el("p","disclaimer","Таҳлил фақат юборилган расмга асосланади ва молиявий маслаҳат эмас. Келишувдан олдин ўзингиз текширинг."));
+
+    show("result");
+    setDock([
+      mkBtn("Улашиш", "btn-soft", function(){ share(entry); }, ICON_SHARE),
+      mkBtn("Янги таҳлил", "btn-primary", function(){ $("fileGal").click(); }, ICON_PLUS)
+    ]);
+  }
+
+  function shareText(entry){
+    var d = entry.data || {};
+    var L = [];
+    L.push((d.pair || "График") + (d.timeframe ? " " + d.timeframe : "") + " — " + (d.bias || "ноаниқ"));
+    if (has(d.price_now)) L.push("Жорий нарх: " + d.price_now);
+    if (has(d.summary)) L.push("", d.summary);
+    if (d.crt && has(d.crt.phase)) L.push("", "CRT: " + d.crt.phase);
+    var lv = Array.isArray(d.levels) ? d.levels : [];
+    if (lv.length){
+      L.push("", "Даражалар:");
+      lv.forEach(function(x){ if (x && has(x.price)) L.push("• " + x.price + " — " + (x.kind || "")); });
+    }
+    var sc = Array.isArray(d.scenarios) ? d.scenarios : [];
+    sc.forEach(function(S){
+      if (!S) return;
+      L.push("", (S.title || "Сценарий") + " (" + (S.action || "") + ")");
+      if (has(S.trigger)) L.push("Шарт: " + S.trigger);
+      if (has(S.invalidation)) L.push("Бекор: " + S.invalidation);
+      var t = arr(S.targets); if (t.length) L.push("Мақсад: " + t.join(", "));
+    });
+    L.push("", "Молиявий маслаҳат эмас.");
+    return L.join("\n");
+  }
+  function share(entry){
+    var t = shareText(entry);
+    if (navigator.share){
+      navigator.share({ title:"График таҳлил", text:t }).catch(function(){});
+    } else if (navigator.clipboard){
+      navigator.clipboard.writeText(t).then(function(){ toast("Нусха олинди"); }, function(){ toast("Нусха олиб бўлмади"); });
+    }
+  }
+
+  /* ================= тарих ================= */
+  function histItem(entry){
+    var d = entry.data || {};
+    var b = el("button","hitem"); b.type = "button";
+    var th;
+    if (entry.thumb){ th = el("img","hthumb"); th.src = "data:image/jpeg;base64," + entry.thumb; th.alt = ""; }
+    else th = el("div","hthumb");
+    b.appendChild(th);
+    var mt = el("div","hmeta");
+    mt.appendChild(el("div","hpair", (d.pair || "Жуфтлик номаълум") + (d.timeframe ? " · " + d.timeframe : "")));
+    mt.appendChild(el("div","hsub", fmtTime(entry.at)));
+    b.appendChild(mt);
+    var bc = biasCls(d.bias);
+    b.appendChild(el("span","tag " + bc, d.bias || "ноаниқ"));
+    b.addEventListener("click", function(){ renderResult(entry); });
+    return b;
+  }
+  function renderRecent(){
+    var list = getHist(), box = $("recent");
+    box.innerHTML = "";
+    if (!list.length){
+      box.appendChild(el("div","empty","Биринчи графикни юборинг — таҳлиллар шу ерда сақланади."));
+      $("btnAllHist").classList.add("hidden");
+      return;
+    }
+    list.slice(0,3).forEach(function(e){ box.appendChild(histItem(e)); });
+    $("btnAllHist").classList.toggle("hidden", list.length <= 3);
+  }
+  function renderAllHist(){
+    var list = getHist(), box = $("allHist");
+    box.innerHTML = "";
+    if (!list.length){ box.appendChild(el("div","empty","Ҳали таҳлил йўқ.")); return; }
+    list.forEach(function(e){ box.appendChild(histItem(e)); });
+  }
+  $("btnClearHist").addEventListener("click", function(){
+    if (!getHist().length) return;
+    if (confirm("Барча таҳлиллар ўчирилсинми?")){ lsDel(LS_HIST); renderAllHist(); toast("Тарих тозаланди"); }
+  });
+
+  /* ================= бошланиш ================= */
+  renderRecent();
+  if (!getKey()) setTimeout(function(){ openSheet("Ишлатишдан олдин API калитни киритинг."); }, 500);
+})();
+</script>
+</body>
+</html>
